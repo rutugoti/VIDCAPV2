@@ -203,12 +203,15 @@ if st.button("🚀 Run Captioning Pipeline", disabled=(video_path is None or not
             st.write(f"✓ Extracted {len(keyframes)} keyframes.")
             
             # Show frames in Expander
-            with st.expander("Show Extracted Keyframes"):
-                cols = st.columns(min(len(keyframes), 5))
-                for idx, kf_path in enumerate(keyframes):
-                    col_idx = idx % 5
-                    img = Image.open(kf_path)
-                    cols[col_idx].image(img, caption=f"Frame {idx+1}", use_column_width=True)
+            if keyframes:
+                with st.expander("Show Extracted Keyframes"):
+                    cols = st.columns(min(len(keyframes), 5))
+                    for idx, kf_path in enumerate(keyframes):
+                        col_idx = idx % 5
+                        img = Image.open(kf_path)
+                        cols[col_idx].image(img, caption=f"Frame {idx+1}", use_column_width=True)
+            else:
+                st.warning("⚠️ No keyframes were extracted. Visual analysis might fail.")
             
             # Step 2: Speech Transcription
             status.update(label="Extracting audio track and transcribing via Groq Whisper...", state="running")
