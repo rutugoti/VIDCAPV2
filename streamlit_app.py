@@ -5,11 +5,21 @@ import json
 import streamlit as st
 from PIL import Image
 
+# Prevent OpenAI missing credentials crash on startup/import before importing pipeline
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+except Exception:
+    pass
+
+if not os.environ.get("GROQ_API_KEY"):
+    os.environ["GROQ_API_KEY"] = "sk_placeholder_key_to_prevent_import_error"
+
 # Add root directory to path for imports
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import Sentinel-V pipeline components
+# Import Sentinel-V pipeline components safely
 from src.config import VISION_MODEL, TEXT_MODEL, SPEECH_MODEL
 from src.pipeline.extract import extract_dynamic_keyframes
 from src.pipeline.transcribe import extract_and_transcribe_audio
@@ -78,18 +88,27 @@ st.sidebar.image("https://img.icons8.com/nolan/128/video-playlist.png", width=80
 st.sidebar.title("Configuration")
 
 # 1. API Authentication
+current_env_key = os.environ.get("GROQ_API_KEY", "")
+display_key = "" if current_env_key == "sk_placeholder_key_to_prevent_import_error" else current_env_key
+
 groq_api_key = st.sidebar.text_input(
     "Groq API Key",
-    value=os.environ.get("GROQ_API_KEY", ""),
+    value=display_key,
     type="password",
     help="Enter your Groq API key. If already set in environment variables, it will load automatically."
 )
 
-if groq_api_key:
+if groq_api_key and groq_api_key != "sk_placeholder_key_to_prevent_import_error":
     os.environ["GROQ_API_KEY"] = groq_api_key
-    # Force re-initialization of clients if needed
-    import openai
-    openai.api_key = groq_api_key
+    # Hot-patch the settings and clients in other modules
+    import src.config
+    import src.pipeline.transcribe
+    import src.pipeline.caption
+    
+    src.config.GROQ_API_KEY = groq_api_key
+    src.pipeline.transcribe.GROQ_API_KEY = groq_api_key
+    if hasattr(src.pipeline.caption, "groq_client"):
+        src.pipeline.caption.groq_client.api_key = groq_api_key
 
 # 2. Model information (Read-only representation)
 st.sidebar.subheader("AI Models")
