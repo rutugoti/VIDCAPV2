@@ -232,7 +232,7 @@ if st.button("🚀 Run Captioning Pipeline", disabled=(video_path is None or not
             final_captions = {style: raw_captions.get(style, "Caption unavailable.") for style in requested_styles}
             st.write(f"✓ Gen completed in {time.time() - start_gen_time:.2f}s.")
             
-            status.update(label="Pipeline Executed Successfully!", state="complete", icon="✅")
+            status.update(label="Pipeline Executed Successfully!", state="complete")
 
         # Results Display Area
         st.subheader("🎬 Generated Styled Captions")
