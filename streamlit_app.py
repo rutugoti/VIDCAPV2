@@ -143,6 +143,9 @@ if "work_dir_path" not in st.session_state:
 work_dir = st.session_state.work_dir_path
 os.makedirs(work_dir, exist_ok=True)
 
+if "last_video_url" not in st.session_state:
+    st.session_state.last_video_url = ""
+
 if input_method == "Direct Video URL":
     video_url = st.text_input(
         "Direct MP4 Link",
@@ -153,6 +156,15 @@ if input_method == "Direct Video URL":
         st.video(video_url)
         video_path = os.path.join(work_dir, "downloaded_video.mp4")
         
+        # Reset download if URL changed
+        if video_url != st.session_state.last_video_url:
+            st.session_state.last_video_url = video_url
+            if os.path.exists(video_path):
+                try:
+                    os.remove(video_path)
+                except Exception:
+                    pass
+        
         # Download logic when requested
         download_btn = st.button("Load and Pre-Process URL")
         if download_btn:
@@ -161,7 +173,6 @@ if input_method == "Direct Video URL":
                     st.success("Video downloaded successfully!")
                 else:
                     st.error("Failed to download video from URL.")
-                    video_path = None
 else:
     uploaded_file = st.file_uploader("Upload Video File (.mp4, .mov)", type=["mp4", "mov", "avi"])
     if uploaded_file is not None:
@@ -198,6 +209,14 @@ if st.button("🚀 Run Captioning Pipeline", disabled=(video_path is None or not
         # Progress Tracking via Streamlit Status UI
         with st.status("Processing video captioning agent...") as status:
             
+            # Step 0: Download if needed
+            if input_method == "Direct Video URL" and not os.path.exists(video_path):
+                status.update(label="Downloading video stream from URL...", state="running")
+                if not download_video(video_url, video_path):
+                    status.update(label="Failed to download video from URL.", state="error")
+                    st.stop()
+                st.write("✓ Video downloaded successfully.")
+                
             # Step 1: Feature Extraction
             status.update(label="Extracting keyframes using FFMPEG scene cut detection...", state="running")
             frames_dir = os.path.join(work_dir, "frames")
