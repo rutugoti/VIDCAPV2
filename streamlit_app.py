@@ -100,15 +100,18 @@ groq_api_key = st.sidebar.text_input(
 
 if groq_api_key and groq_api_key != "sk_placeholder_key_to_prevent_import_error":
     os.environ["GROQ_API_KEY"] = groq_api_key
-    # Hot-patch the settings and clients in other modules
-    import src.config
-    import src.pipeline.transcribe
-    import src.pipeline.caption
+    # Hot-patch the settings and clients in other modules using sys.modules to prevent namespace conflicts
+    import sys
+    config_mod = sys.modules.get("src.config")
+    transcribe_mod = sys.modules.get("src.pipeline.transcribe")
+    caption_mod = sys.modules.get("src.pipeline.caption")
     
-    src.config.GROQ_API_KEY = groq_api_key
-    src.pipeline.transcribe.GROQ_API_KEY = groq_api_key
-    if hasattr(src.pipeline.caption, "groq_client"):
-        src.pipeline.caption.groq_client.api_key = groq_api_key
+    if config_mod:
+        config_mod.GROQ_API_KEY = groq_api_key
+    if transcribe_mod:
+        transcribe_mod.GROQ_API_KEY = groq_api_key
+    if caption_mod and hasattr(caption_mod, "groq_client"):
+        caption_mod.groq_client.api_key = groq_api_key
 
 # 2. Model information (Read-only representation)
 st.sidebar.subheader("AI Models")
