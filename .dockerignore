@@ -1,0 +1,39 @@
+# Exclude secrets
+.env
+
+# Exclude git repository metadata
+.git
+.github
+
+# Exclude python build and cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Exclude local directories that are dynamically mounted at runtime
+input/
+output/
+
+# Exclude virtual environments
+venv/
+.venv/
+env/
+
+# Exclude local temporary media files
+work_*/
+*.mp4
+*.mp3
+*.jpg
+*.jpeg
+*.png
+
+# Exclude IDE settings
+.vscode/
+.idea/
+
+# Exclude developer documentation to reduce build context size
+docs/
+*.md
+LICENSE

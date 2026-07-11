@@ -1,0 +1,38 @@
+# Environment Variables (Secrets)
+.env
+
+# Python compilation artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local input/output directories (contains raw videos/results)
+input/
+output/
+
+# Temporary work directories and media files
+work_*/
+*.mp4
+*.mp3
+*.jpg
+*.jpeg
+*.png
+temp/
+tmp/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+*.md
