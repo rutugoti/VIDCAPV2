@@ -110,8 +110,17 @@ if groq_api_key and groq_api_key != "sk_placeholder_key_to_prevent_import_error"
         config_mod.GROQ_API_KEY = groq_api_key
     if transcribe_mod:
         transcribe_mod.GROQ_API_KEY = groq_api_key
-    if caption_mod and hasattr(caption_mod, "groq_client"):
-        caption_mod.groq_client.api_key = groq_api_key
+    if caption_mod:
+        # Re-instantiate the OpenAI client with the new API key to avoid internal caching issues
+        from openai import OpenAI
+        caption_mod.groq_client = OpenAI(
+            api_key=groq_api_key,
+            base_url="https://api.groq.com/openai/v1"
+        )
+        
+    # Check if the key format is correct for Groq
+    if not groq_api_key.startswith("gsk_"):
+        st.sidebar.warning("⚠️ Warning: Groq API keys usually start with 'gsk_'. Please verify your key.")
 
 # 2. Model information (Read-only representation)
 st.sidebar.subheader("AI Models")
