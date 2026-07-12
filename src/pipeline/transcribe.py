@@ -1,7 +1,7 @@
 import subprocess
 import os
-from openai import OpenAI
-from src.config import GROQ_API_KEY, SPEECH_MODEL
+import time
+from src.config import SPEECH_MODEL, get_groq_client, safe_groq_call
 
 def extract_and_transcribe_audio(video_path, output_dir):
     """
@@ -17,18 +17,15 @@ def extract_and_transcribe_audio(video_path, output_dir):
     if not os.path.exists(audio_path) or os.path.getsize(audio_path) < 1000:
         return None
         
-    client = OpenAI(
-        api_key=GROQ_API_KEY,
-        base_url="https://api.groq.com/openai/v1"
-    )
-    
     try:
         with open(audio_path, "rb") as audio_file:
-            transcript_obj = client.audio.transcriptions.create(
-                model=SPEECH_MODEL,
-                file=audio_file,
-                response_format="text"
-            )
+            def do_transcription(client):
+                return client.audio.transcriptions.create(
+                    model=SPEECH_MODEL,
+                    file=audio_file,
+                    response_format="text"
+                )
+            transcript_obj = safe_groq_call("text", 500, do_transcription)
         transcript = transcript_obj.strip()
         hallucinations = ["thank you", "subscrib", "watching", "captioned by", "amara"]
         if any(phrase in transcript.lower() for phrase in hallucinations) or len(transcript.split()) < 3:
