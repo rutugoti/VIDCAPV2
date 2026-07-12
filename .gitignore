@@ -36,3 +36,4 @@ ENV/
 .DS_Store
 
 *.md
+!README.md
